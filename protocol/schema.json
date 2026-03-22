@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E-MIDI Emotion Message",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "valence",
+    "arousal",
+    "tension",
+    "bounce",
+    "source_id",
+    "timestamp"
+  ],
+  "properties": {
+    "valence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+    },
+    "arousal": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+    },
+    "tension": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+    },
+    "bounce": {
+      "type": "boolean"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "timestamp": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
