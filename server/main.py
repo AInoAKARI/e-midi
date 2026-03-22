@@ -4,9 +4,11 @@ import asyncio
 import json
 import time
 from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from core.bounce import BounceDetector
@@ -14,6 +16,7 @@ from core.decoder import from_bytes
 from core.encoder import EmotionState
 
 app = FastAPI(title="E-MIDI Server")
+VISUALIZER_DIR = Path(__file__).resolve().parent.parent / "visualizer"
 
 
 class EmotionPayload(BaseModel):
@@ -84,6 +87,16 @@ async def process_state(state: EmotionState) -> dict[str, Any]:
 @app.get("/health")
 async def health() -> dict[str, Any]:
     return {"status": "ok", "connections": len(hub.receivers)}
+
+
+@app.get("/")
+async def index() -> FileResponse:
+    return FileResponse(VISUALIZER_DIR / "index.html")
+
+
+@app.get("/visualizer/{asset_name}")
+async def visualizer_asset(asset_name: str) -> FileResponse:
+    return FileResponse(VISUALIZER_DIR / asset_name)
 
 
 @app.post("/api/emotion")
