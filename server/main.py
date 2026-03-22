@@ -25,6 +25,7 @@ class EmotionPayload(BaseModel):
     tension: int = Field(ge=0, le=127)
     source_id: str
     timestamp: int | None = None
+    bounce: bool = False
 
 
 class BroadcastHub:
@@ -105,6 +106,7 @@ async def api_emotion(payload: EmotionPayload) -> dict[str, Any]:
         valence=payload.valence,
         arousal=payload.arousal,
         tension=payload.tension,
+        bounce=payload.bounce,
         source_id=payload.source_id,
         timestamp=payload.timestamp or int(time.time() * 1000),
     )
