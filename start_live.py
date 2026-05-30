@@ -58,9 +58,10 @@ def main():
         run_bg([PYTHON, "-m", "http.server", "3456",
                 "--directory", "akari-house-stream"])
 
-    # 5. OBS起動
+    # 5. OBS起動（cwdをOBS自身のディレクトリに設定しないとlocale読み込み失敗する）
     subprocess.Popen(
         [OBS, "--collection", "Akari_TwitCasting_Min", "--minimize-to-tray"],
+        cwd=str(Path(OBS).parent),
         creationflags=NO_WINDOW,
     )
 
