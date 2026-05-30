@@ -17,6 +17,7 @@ from core.encoder import EmotionState
 
 app = FastAPI(title="E-MIDI Server")
 VISUALIZER_DIR = Path(__file__).resolve().parent.parent / "visualizer"
+OVERLAY_DIR = Path(__file__).resolve().parent.parent.parent / "akairio-stream-tools" / "overlay"
 
 
 class EmotionPayload(BaseModel):
@@ -98,6 +99,16 @@ async def index() -> FileResponse:
 @app.get("/visualizer/{asset_name}")
 async def visualizer_asset(asset_name: str) -> FileResponse:
     return FileResponse(VISUALIZER_DIR / asset_name)
+
+
+@app.get("/overlay")
+async def overlay_index() -> FileResponse:
+    return FileResponse(OVERLAY_DIR / "emotion-overlay.html")
+
+
+@app.get("/overlay/{asset_name}")
+async def overlay_asset(asset_name: str) -> FileResponse:
+    return FileResponse(OVERLAY_DIR / asset_name)
 
 
 @app.post("/api/emotion")

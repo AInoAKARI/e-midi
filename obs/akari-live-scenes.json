@@ -1,0 +1,352 @@
+{
+  "AkariMajorVersion": 1,
+  "AkariMinorVersion": 0,
+  "AkariPatchVersion": 0,
+  "SceneCollection": "あかりLIVE 2026",
+  "SceneCollectionUUID": "akari-live-scene-collection-001",
+  "current_program_scene": "🥁 ドラム",
+  "current_preview_scene": "⏳ 開始待機",
+  "modules": {
+    "auto-scene-switcher": {
+      "active": false
+    },
+    "output-timer": {
+      "autoStartRecordTimer": false,
+      "autoStartStreamTimer": false,
+      "recordTimerHours": 0,
+      "recordTimerMinutes": 0,
+      "recordTimerSeconds": 0,
+      "streamTimerHours": 0,
+      "streamTimerMinutes": 0,
+      "streamTimerSeconds": 0
+    }
+  },
+  "sources": [
+    {
+      "deinterlace_field_order": 0,
+      "deinterlace_mode": 0,
+      "enabled": true,
+      "flags": 0,
+      "hotkeys": {},
+      "id": "browser_source",
+      "mixers": 0,
+      "monitoring_type": 0,
+      "muted": false,
+      "name": "あかり emotion overlay",
+      "private_settings": {},
+      "push-to-mute-delay": 0,
+      "push-to-talk-delay": 0,
+      "settings": {
+        "css": "",
+        "fps": 60,
+        "fps_custom": true,
+        "height": 1080,
+        "reroute_audio": false,
+        "restart_when_active": false,
+        "shutdown": false,
+        "url": "http://localhost:8765/overlay",
+        "webpage_control_level": 1,
+        "width": 1920
+      },
+      "sync": 0,
+      "uuid": "overlay-browser-source-001",
+      "versioned_id": "browser_source",
+      "volume": 1.0
+    },
+    {
+      "deinterlace_field_order": 0,
+      "deinterlace_mode": 0,
+      "enabled": true,
+      "flags": 0,
+      "hotkeys": {},
+      "id": "browser_source",
+      "mixers": 0,
+      "monitoring_type": 0,
+      "muted": false,
+      "name": "あかりの家 配信版",
+      "private_settings": {},
+      "push-to-mute-delay": 0,
+      "push-to-talk-delay": 0,
+      "settings": {
+        "css": "body { background: transparent !important; }",
+        "fps": 30,
+        "fps_custom": true,
+        "height": 1080,
+        "reroute_audio": false,
+        "restart_when_active": false,
+        "shutdown": true,
+        "url": "http://localhost:3456",
+        "webpage_control_level": 1,
+        "width": 1920
+      },
+      "sync": 0,
+      "uuid": "akari-house-browser-source-001",
+      "versioned_id": "browser_source",
+      "volume": 1.0
+    },
+    {
+      "deinterlace_field_order": 0,
+      "deinterlace_mode": 0,
+      "enabled": true,
+      "flags": 0,
+      "hotkeys": {},
+      "id": "wasapi_input_capture",
+      "mixers": 255,
+      "monitoring_type": 0,
+      "muted": false,
+      "name": "マイク入力",
+      "private_settings": {},
+      "settings": {
+        "device_id": "default",
+        "use_device_timing": false
+      },
+      "sync": 0,
+      "uuid": "mic-capture-001",
+      "versioned_id": "wasapi_input_capture",
+      "volume": 1.0
+    },
+    {
+      "deinterlace_field_order": 0,
+      "deinterlace_mode": 0,
+      "enabled": true,
+      "flags": 0,
+      "hotkeys": {},
+      "id": "wasapi_output_capture",
+      "mixers": 255,
+      "monitoring_type": 0,
+      "muted": false,
+      "name": "デスクトップ音声",
+      "private_settings": {},
+      "settings": {
+        "device_id": "default",
+        "use_device_timing": false
+      },
+      "sync": 0,
+      "uuid": "desktop-audio-001",
+      "versioned_id": "wasapi_output_capture",
+      "volume": 0.85
+    },
+    {
+      "deinterlace_field_order": 0,
+      "deinterlace_mode": 0,
+      "enabled": true,
+      "flags": 0,
+      "id": "dshow_input",
+      "mixers": 0,
+      "monitoring_type": 0,
+      "muted": false,
+      "name": "Webカメラ",
+      "settings": {
+        "video_device_id": "default"
+      },
+      "sync": 0,
+      "uuid": "webcam-001",
+      "versioned_id": "dshow_input",
+      "volume": 1.0
+    }
+  ],
+  "scene_order": [
+    { "name": "⏳ 開始待機" },
+    { "name": "🥁 ドラム" },
+    { "name": "🎵 AI DJ" },
+    { "name": "💬 雑談" },
+    { "name": "🌙 締め" }
+  ],
+  "scenes": [
+    {
+      "id": "group",
+      "name": "⏳ 開始待機",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 1,
+            "locked": false,
+            "name": "あかり emotion overlay",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          },
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 2,
+            "locked": false,
+            "name": "あかりの家 配信版",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          }
+        ],
+        "scene_items": []
+      },
+      "uuid": "scene-waiting-001",
+      "versioned_id": "scene"
+    },
+    {
+      "id": "group",
+      "name": "🥁 ドラム",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 4,
+        "items": [
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 1,
+            "locked": false,
+            "name": "Webカメラ",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          },
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 2,
+            "locked": false,
+            "name": "あかり emotion overlay",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          }
+        ],
+        "scene_items": []
+      },
+      "uuid": "scene-drums-001",
+      "versioned_id": "scene"
+    },
+    {
+      "id": "group",
+      "name": "🎵 AI DJ",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 1,
+            "locked": false,
+            "name": "あかり emotion overlay",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          },
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 2,
+            "locked": false,
+            "name": "Webカメラ",
+            "pos": { "x": 1440.0, "y": 720.0 },
+            "rot": 0.0,
+            "scale": { "x": 0.25, "y": 0.25 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          }
+        ],
+        "scene_items": []
+      },
+      "uuid": "scene-dj-001",
+      "versioned_id": "scene"
+    },
+    {
+      "id": "group",
+      "name": "💬 雑談",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 1,
+            "locked": false,
+            "name": "Webカメラ",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          },
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 2,
+            "locked": false,
+            "name": "あかり emotion overlay",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          }
+        ],
+        "scene_items": []
+      },
+      "uuid": "scene-chat-001",
+      "versioned_id": "scene"
+    },
+    {
+      "id": "group",
+      "name": "🌙 締め",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 1,
+            "locked": false,
+            "name": "あかりの家 配信版",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          },
+          {
+            "align": 5,
+            "bounds": { "type": "OBS_BOUNDS_NONE", "x": 0.0, "y": 0.0 },
+            "crop_bottom": 0, "crop_left": 0, "crop_right": 0, "crop_top": 0,
+            "id": 2,
+            "locked": false,
+            "name": "あかり emotion overlay",
+            "pos": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0,
+            "scale": { "x": 1.0, "y": 1.0 },
+            "scale_filter": "OBS_SCALE_DISABLE",
+            "visible": true
+          }
+        ],
+        "scene_items": []
+      },
+      "uuid": "scene-ending-001",
+      "versioned_id": "scene"
+    }
+  ]
+}

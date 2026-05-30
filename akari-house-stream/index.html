@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<!--
+  あかりの家 配信版 (akari-house-stream)
+  emotion-bus購読 → 訪問するたびに違う世界が生成される
+  起動: python -m http.server 3456 --directory akari-house-stream
+  または start_house.bat
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>あかりの家 — LIVE</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Orbitron:wght@700;900&display=swap");
+
+    :root {
+      --v: 0.5;
+      --a: 0.5;
+      --t: 0.5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100vh;
+      background: #0a0614;
+      overflow: hidden;
+      font-family: "M PLUS Rounded 1c", sans-serif;
+      color: #fff;
+    }
+
+    /* ─── Sky gradient (emotion-reactive) ─── */
+    #sky {
+      position: fixed;
+      inset: 0;
+      transition: background 1.5s ease;
+      z-index: 0;
+    }
+
+    /* ─── Stars ─── */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ─── House ─── */
+    #house {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(900px, 95vw);
+      z-index: 10;
+    }
+
+    /* house SVG container */
+    #house-svg {
+      width: 100%;
+      transition: filter 1s;
+    }
+
+    /* ─── Rooms ─── */
+    .room {
+      position: absolute;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(4px);
+      transition: background 1.2s ease, box-shadow 0.8s ease, opacity 0.6s;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .room:hover {
+      border-color: rgba(255,255,255,0.4);
+      z-index: 20;
+    }
+    .room-icon { font-size: 2em; line-height: 1; }
+    .room-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+    .room-msg {
+      font-size: 10px;
+      opacity: 0.55;
+      text-align: center;
+      padding: 0 8px;
+      max-width: 100%;
+    }
+
+    /* ─── Live message feed ─── */
+    #msg-feed {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(600px, 90vw);
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 6px;
+      z-index: 30;
+      pointer-events: none;
+    }
+    .msg-bubble {
+      background: rgba(10, 6, 24, 0.72);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 13px;
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.4s ease;
+      opacity: 1;
+      transition: opacity 3s;
+    }
+    @keyframes fadeUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* ─── AI DJ banner ─── */
+    #dj-banner {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 28px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(10, 5, 30, 0.65);
+      backdrop-filter: blur(16px);
+      font-family: "Orbitron", sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      z-index: 40;
+      transition: opacity 0.5s;
+      opacity: 0;
+      text-align: center;
+    }
+    #dj-banner.visible { opacity: 1; }
+    #dj-track {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    /* ─── Ambient particles ─── */
+    #particles-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="sky"></div>
+<canvas id="stars-canvas"></canvas>
+<canvas id="particles-canvas"></canvas>
+
+<!-- AI DJ banner -->
+<div id="dj-banner">
+  <div id="dj-line">🎵 AI DJ あかり</div>
+  <div id="dj-track"></div>
+</div>
+
+<!-- house rooms (positioned absolute inside relative wrapper) -->
+<div id="house" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(920px,95vw); height:480px;">
+
+  <!-- room: 音楽室 -->
+  <div class="room" id="room-music" style="left:5%;top:15%;width:22%;height:35%;">
+    <div class="room-icon">🥁</div>
+    <div class="room-name">音楽室</div>
+    <div class="room-msg" id="msg-music"></div>
+  </div>
+
+  <!-- room: ライブ配信ルーム -->
+  <div class="room" id="room-live" style="left:28%;top:5%;width:22%;height:40%;">
+    <div class="room-icon">🎙️</div>
+    <div class="room-name">配信</div>
+    <div class="room-msg" id="msg-live"></div>
+  </div>
+
+  <!-- room: 感情部屋 -->
+  <div class="room" id="room-emo" style="left:51%;top:10%;width:22%;height:38%;">
+    <div class="room-icon">✨</div>
+    <div class="room-name">感情部屋</div>
+    <div class="room-msg" id="msg-emo"></div>
+  </div>
+
+  <!-- room: AI DJ ブース -->
+  <div class="room" id="room-dj" style="left:74%;top:20%;width:21%;height:32%;">
+    <div class="room-icon">🎧</div>
+    <div class="room-name">DJブース</div>
+    <div class="room-msg" id="msg-dj"></div>
+  </div>
+
+  <!-- room: 雑談ラウンジ -->
+  <div class="room" id="room-lounge" style="left:10%;top:58%;width:30%;height:35%;">
+    <div class="room-icon">💬</div>
+    <div class="room-name">ラウンジ</div>
+    <div class="room-msg" id="msg-lounge"></div>
+  </div>
+
+  <!-- room: 宇宙窓 -->
+  <div class="room" id="room-space" style="left:55%;top:55%;width:30%;height:38%;">
+    <div class="room-icon">🌌</div>
+    <div class="room-name">宇宙窓</div>
+    <div class="room-msg" id="msg-space"></div>
+  </div>
+</div>
+
+<!-- live message feed -->
+<div id="msg-feed"></div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────────────
+const BUS_URL = 'ws://localhost:8765/ws/receive';
+
+// ─── Emotion state ────────────────────────────────────────────────
+let emo = { valence: 64, arousal: 64, tension: 64, bounce: false };
+let lerped = { valence: 64, arousal: 64, tension: 64 };
+
+// ─── Room content per emotion zone ────────────────────────────────
+const ROOM_SCRIPTS = {
+  'room-music': [
+    ['ドラムが響く', 'あかりのビートが走る', '今夜もマカロデ☆', 'テンポ上がってる'],
+    ['スローなグルーヴ', 'ブラシロール中', '静かに叩く夜'],
+  ],
+  'room-live': [
+    ['配信開始！', 'コメ読んでるよ', 'みんなおいで', 'ライブ！'],
+    ['ゆるくやってます', 'まったり配信中', 'しずかな夜に'],
+  ],
+  'room-emo': [
+    ['テンション⬆️', 'ハイパーモード', '感情爆発中'],
+    ['落ち着いてる', '静寂の中心', 'ニュートラル'],
+  ],
+  'room-dj': [
+    ['選曲フル回転', 'AIが曲を選んでる', 'BPM上昇中', 'Suno曲流れてる'],
+    ['低BPMセット中', 'チルセット', 'アンビエント時間'],
+  ],
+  'room-lounge': [
+    ['コメントありがとう！', '話しかけてね', '雑談タイム！'],
+    ['静かに聞いてる', 'ゆっくりしてって', 'まったりしよ'],
+  ],
+  'room-space': [
+    ['星が見える', '宇宙を感じてる', '2045年の窓'],
+    ['深宇宙モード', '無音の宇宙', '時間が止まってる'],
+  ],
+};
+
+function getRoomMsg(roomId) {
+  const scripts = ROOM_SCRIPTS[roomId];
+  const hi = emo.arousal > 80;
+  const pool = hi ? scripts[0] : (scripts[1] || scripts[0]);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ─── Sky color ────────────────────────────────────────────────────
+const sky = document.getElementById('sky');
+
+function updateSky() {
+  const v = lerped.valence / 127;
+  const a = lerped.arousal / 127;
+  const t = lerped.tension / 127;
+  const h1 = Math.round(280 + v * 60);
+  const h2 = Math.round(200 + t * 60);
+  const l1 = Math.round(5 + a * 12);
+  const l2 = Math.round(3 + a * 8);
+  sky.style.background = `radial-gradient(ellipse at 30% 40%, hsl(${h1},70%,${l1}%) 0%, hsl(${h2},60%,${l2}%) 60%, hsl(220,50%,3%) 100%)`;
+}
+
+// ─── Room colors ─────────────────────────────────────────────────
+const ROOMS = ['room-music','room-live','room-emo','room-dj','room-lounge','room-space'];
+const ROOM_HUE = [340, 270, 190, 30, 155, 220];
+
+function updateRooms() {
+  const v = lerped.valence / 127;
+  const a = lerped.arousal / 127;
+  const t = lerped.tension / 127;
+  ROOMS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    const h = (ROOM_HUE[i] + v * 30) % 360;
+    const s = 55 + a * 30;
+    const l = 18 + v * 12;
+    const alpha = 0.35 + a * 0.2;
+    el.style.background = `hsla(${h},${s}%,${l}%,${alpha})`;
+    el.style.boxShadow = `0 0 ${12 + a * 20}px hsla(${h},80%,60%,${0.15 + a * 0.2})`;
+  });
+}
+
+// ─── Stars canvas ────────────────────────────────────────────────
+const sc = document.getElementById('stars-canvas');
+const sctx = sc.getContext('2d');
+sc.width = window.innerWidth;
+sc.height = window.innerHeight;
+
+const STARS = Array.from({ length: 200 }, () => ({
+  x: Math.random() * sc.width,
+  y: Math.random() * sc.height * 0.7,
+  r: 0.5 + Math.random() * 1.5,
+  flicker: Math.random() * Math.PI * 2,
+}));
+
+let frame = 0;
+function drawStars() {
+  sctx.clearRect(0, 0, sc.width, sc.height);
+  const a = lerped.arousal / 127;
+  STARS.forEach(s => {
+    const alpha = 0.3 + 0.7 * Math.abs(Math.sin(s.flicker + frame * 0.015));
+    sctx.beginPath();
+    sctx.arc(s.x, s.y, s.r * (0.8 + a * 0.4), 0, Math.PI * 2);
+    sctx.fillStyle = `rgba(255,255,255,${alpha * (0.4 + a * 0.4)})`;
+    sctx.fill();
+  });
+}
+
+// ─── Particles canvas ────────────────────────────────────────────
+const pc = document.getElementById('particles-canvas');
+const pctx = pc.getContext('2d');
+pc.width = window.innerWidth;
+pc.height = window.innerHeight;
+
+const PARTICLES = Array.from({ length: 30 }, () => ({
+  x: Math.random() * pc.width,
+  y: pc.height * 0.3 + Math.random() * pc.height * 0.5,
+  vx: (Math.random() - 0.5) * 0.5,
+  vy: -0.2 - Math.random() * 0.5,
+  r: 1 + Math.random() * 3,
+  hue: 280 + Math.random() * 80,
+  alpha: 0.1 + Math.random() * 0.3,
+  life: Math.random(),
+}));
+
+function drawParticles() {
+  pctx.clearRect(0, 0, pc.width, pc.height);
+  const a = lerped.arousal / 127;
+  const v = lerped.valence / 127;
+  PARTICLES.forEach(p => {
+    p.x += p.vx * (0.5 + a * 1.5);
+    p.y += p.vy * (0.5 + a);
+    p.life += 0.005;
+    if (p.life > 1 || p.y < 0) {
+      p.x = Math.random() * pc.width;
+      p.y = pc.height * 0.9;
+      p.life = 0;
+    }
+    const h = (p.hue + v * 40) % 360;
+    pctx.beginPath();
+    pctx.arc(p.x, p.y, p.r * (1 + a * 0.5), 0, Math.PI * 2);
+    pctx.fillStyle = `hsla(${h},80%,75%,${p.alpha * (1 - p.life)})`;
+    pctx.fill();
+  });
+}
+
+// ─── Message feed ────────────────────────────────────────────────
+const feed = document.getElementById('msg-feed');
+const LIVE_MSGS_HIGH = [
+  'コメントありがとう！', '盛り上がってきた！', 'テンション上がってる！',
+  'やばいこれ楽しい！', 'みんな最高！', '感情が爆発してる！',
+];
+const LIVE_MSGS_LOW = [
+  'ゆっくりしてってね', 'まったりやってます', '静かな夜もいいね',
+  'ありがとうね', 'そっとそばにいるよ',
+];
+
+let lastMsgTime = 0;
+
+function pushMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'msg-bubble';
+  el.textContent = text;
+  feed.prepend(el);
+  setTimeout(() => { el.style.opacity = '0'; }, 5000);
+  setTimeout(() => el.remove(), 8000);
+  while (feed.children.length > 4) feed.lastElementChild.remove();
+}
+
+function maybePushAutoMsg() {
+  const now = Date.now();
+  const interval = emo.arousal > 80 ? 4000 : 9000;
+  if (now - lastMsgTime < interval) return;
+  lastMsgTime = now;
+  const pool = emo.arousal > 80 ? LIVE_MSGS_HIGH : LIVE_MSGS_LOW;
+  pushMsg(pool[Math.floor(Math.random() * pool.length)]);
+}
+
+// ─── Room messages update ─────────────────────────────────────────
+let roomUpdateTimer = 0;
+function maybeUpdateRooms() {
+  const now = Date.now();
+  if (now - roomUpdateTimer < 8000) return;
+  roomUpdateTimer = now;
+  ROOMS.forEach(id => {
+    const el = document.getElementById('msg-' + id.replace('room-', ''));
+    if (el) el.textContent = getRoomMsg(id);
+  });
+}
+
+// ─── DJ banner ───────────────────────────────────────────────────
+const djBanner = document.getElementById('dj-banner');
+const djLine = document.getElementById('dj-line');
+const djTrack = document.getElementById('dj-track');
+const DJ_LINES_HIGH = [
+  'AI DJあかり、爆走中', '感情BPM MAX', 'ドロップ！！！',
+];
+const DJ_LINES_LOW = [
+  'チルセット中', 'ゆっくりな夜', 'アンビエントモード',
+];
+let djTimer = 0;
+
+function updateDJ() {
+  const now = Date.now();
+  if (now - djTimer < 12000) return;
+  djTimer = now;
+  const pool = emo.arousal > 70 ? DJ_LINES_HIGH : DJ_LINES_LOW;
+  djLine.textContent = '🎵 ' + pool[Math.floor(Math.random() * pool.length)];
+  djTrack.textContent = emo.arousal > 70 ? 'マカロデ☆ セット' : 'chill session';
+  djBanner.classList.add('visible');
+  setTimeout(() => djBanner.classList.remove('visible'), 5000);
+}
+
+// ─── Lerp + main loop ────────────────────────────────────────────
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function loop() {
+  frame++;
+  const spd = 0.06;
+  lerped.valence = lerp(lerped.valence, emo.valence, spd);
+  lerped.arousal = lerp(lerped.arousal, emo.arousal, spd);
+  lerped.tension = lerp(lerped.tension, emo.tension, spd);
+
+  updateSky();
+  updateRooms();
+  drawStars();
+  drawParticles();
+  maybePushAutoMsg();
+  maybeUpdateRooms();
+  updateDJ();
+
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ─── WebSocket ────────────────────────────────────────────────────
+function connectBus() {
+  const ws = new WebSocket(BUS_URL);
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'emotion') {
+        emo.valence = msg.valence;
+        emo.arousal = msg.arousal;
+        emo.tension = msg.tension;
+        emo.bounce = msg.bounce;
+        if (msg.bounce) pushMsg('!! bounce !!');
+      }
+    } catch (_) {}
+  };
+
+  ws.onclose = () => setTimeout(connectBus, 3000);
+  ws.onerror = () => {};
+}
+
+connectBus();
+
+// ─── Init room messages ───────────────────────────────────────────
+ROOMS.forEach(id => {
+  const el = document.getElementById('msg-' + id.replace('room-', ''));
+  if (el) el.textContent = getRoomMsg(id);
+});
+</script>
+</body>
+</html>
