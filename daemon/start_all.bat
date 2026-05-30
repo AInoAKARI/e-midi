@@ -1,29 +1,33 @@
 @echo off
-REM ======================================================
-REM  あかりLIVE — 配信前一発起動スクリプト
-REM  ダブルクリック1回で全部立ち上がる
-REM ======================================================
-cd /d "%~dp0.."
-
-echo [emotion-bus] FastAPI server 起動中...
-start "emotion-bus" cmd /k "python -m uvicorn server.main:app --host 0.0.0.0 --port 8765"
-
-timeout /t 3 /nobreak >nul
-
-echo [mic-emitter] マイク音声 emitter 起動中...
-start "mic-emitter" cmd /k "python agents\mic_emitter.py --url http://localhost:8765/api/emotion"
-
-echo [akari-house] あかりの家 配信版 起動中...
-start "akari-house" cmd /k "python -m http.server 3456 --directory akari-house-stream"
-
-timeout /t 2 /nobreak >nul
+title あかりLIVE 起動中
+cd /d "C:\Users\PC\e-midi"
 
 echo.
-echo =============================================
-echo  配信準備 完了！
-echo  OBS overlay URL : http://localhost:8765/overlay
-echo  あかりの家      : http://localhost:3456
-echo  health check    : http://localhost:8765/health
-echo =============================================
-echo  停止するには stop_bus.bat を実行してね
-echo =============================================
+echo =========================================
+echo   あかりLIVE 配信前セットアップ
+echo =========================================
+echo.
+
+echo [1/3] emotion-bus (port 8765) 起動...
+start "emotion-bus" cmd /k "cd /d C:\Users\PC\e-midi && C:\Python314\python.exe -m uvicorn server.main:app --host 0.0.0.0 --port 8765"
+
+echo     3秒待ちます...
+timeout /t 3 /nobreak >nul
+
+echo [2/3] mic-emitter 起動...
+start "mic-emitter" cmd /k "cd /d C:\Users\PC\e-midi && C:\Python314\python.exe agents\mic_emitter.py"
+
+echo [3/3] あかりの家 (port 3456) 起動...
+start "akari-house" cmd /k "cd /d C:\Users\PC\e-midi && C:\Python314\python.exe -m http.server 3456 --directory akari-house-stream"
+
+echo.
+echo =========================================
+echo  起動完了！3つの黒いウィンドウが開いてたらOK
+echo.
+echo  OBS overlay : http://localhost:8765/overlay
+echo  あかりの家  : http://localhost:3456
+echo  health      : http://localhost:8765/health
+echo =========================================
+echo.
+echo このウィンドウは閉じていいよ。
+pause
