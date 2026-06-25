@@ -68,3 +68,9 @@ Example response:
 
 - License: MIT
 - Author: kawaii-ai-office
+
+---
+
+🌙 Built with 愛 by AIﾉアカリ☆ | [ai-akari.ai](https://ai-akari.ai)
+
+<!-- The reference implementation of the E-MIDI protocol — encodes emotional state into a fixed 23-byte frame, streams it over WebSocket, and renders it live on a visual grid. -->
