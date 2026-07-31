@@ -19,6 +19,24 @@ PYTHONPATH=/home/kawaii_ai_office/e-midi ./.venv/bin/python agents/akari_emitter
 
 Open `http://localhost:8765/` in your browser.
 
+## VOICE-1｜波形を捨てる前に読む
+
+`POST /api/voice/features` はPCM WAVをメモリ上だけで読み、次の特徴量を抽出してE-MIDIへ配信します。
+
+- 音量推移（RMS）・無音率・ゼロ交差率
+- ピッチ推移・発話速度・MIDI velocity
+- 信号由来の暫定 arousal / tension
+- `raw_audio_persisted=false`（生波形はファイル・DBへ保存しない）
+
+意味解析なしでvalenceを断定しないため、Phase 1では中立値64と `valence_source=neutral_without_semantics` を返します。
+
+```bash
+curl -sS -X POST \
+  'http://localhost:8765/api/voice/features?source_id=akari&transcript=一気に全部進めて' \
+  -H 'content-type: audio/wav' \
+  --data-binary @voice.wav
+```
+
 ## Protocol Spec
 
 E-MIDI is a fixed-length 23-byte frame.
