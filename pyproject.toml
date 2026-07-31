@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-akari-e-midi"
+version = "0.2.0"
+description = "E-MIDI protocol and zero-cost voice waveform feature extraction"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "AIﾉアカリ☆"}]
+dependencies = ["numpy>=1.24"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "voice*"]
