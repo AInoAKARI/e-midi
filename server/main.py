@@ -7,17 +7,23 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from core.bounce import BounceDetector
 from core.decoder import from_bytes
 from core.encoder import EmotionState
+from voice.features import extract_wav_features
 
 app = FastAPI(title="E-MIDI Server")
 VISUALIZER_DIR = Path(__file__).resolve().parent.parent / "visualizer"
-OVERLAY_DIR = Path(__file__).resolve().parent.parent.parent / "akairio-stream-tools" / "overlay"
+OVERLAY_DIR = (
+    Path(__file__).resolve().parent.parent.parent
+    / "akairio-stream-tools"
+    / "overlay"
+)
+MAX_VOICE_BYTES = 25 * 1024 * 1024
 
 
 class EmotionPayload(BaseModel):
@@ -122,6 +128,55 @@ async def api_emotion(payload: EmotionPayload) -> dict[str, Any]:
         timestamp=payload.timestamp or int(time.time() * 1000),
     )
     return await process_state(state)
+
+
+@app.post("/api/voice/features")
+async def api_voice_features(
+    request: Request,
+    source_id: str = "akari",
+    transcript: str | None = None,
+) -> dict[str, Any]:
+    """Read one PCM WAV in memory, emit E-MIDI, and persist no raw audio."""
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_VOICE_BYTES:
+        raise HTTPException(status_code=413, detail="voice payload exceeds 25 MiB")
+
+    content_type = request.headers.get("content-type", "").split(";", 1)[0]
+    allowed_types = {"audio/wav", "audio/x-wav", "application/octet-stream"}
+    if content_type not in allowed_types:
+        raise HTTPException(
+            status_code=415,
+            detail="send an uncompressed PCM WAV body",
+        )
+
+    audio_bytes = await request.body()
+    if len(audio_bytes) > MAX_VOICE_BYTES:
+        raise HTTPException(status_code=413, detail="voice payload exceeds 25 MiB")
+
+    try:
+        features = extract_wav_features(audio_bytes, transcript=transcript)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    state = EmotionState(
+        valence=features.valence,
+        arousal=features.arousal,
+        tension=features.tension,
+        bounce=False,
+        source_id=source_id,
+        timestamp=int(time.time() * 1000),
+    )
+    emidi = await process_state(state)
+
+    return {
+        "status": "ok",
+        "privacy": {
+            "processing": "memory_only",
+            "raw_audio_persisted": False,
+        },
+        "features": features.to_dict(),
+        "emidi": emidi,
+    }
 
 
 @app.websocket("/ws/emit")
